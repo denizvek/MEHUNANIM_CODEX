@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>תרגול למבחן מחוננים - כיתה ב׳</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            color: white;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        #userArea {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        /* Home Screen */
+        .home-screen .welcome {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .home-screen .mascot {
+            font-size: 80px;
+            margin-bottom: 15px;
+        }
+
+        .home-screen h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .home-screen p {
+            color: #666;
+        }
+
+        /* Mode Selection */
+        .mode-selection {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            padding: 20px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .mode-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+        }
+
+        .mode-btn.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+        }
+
+        .mode-btn .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .mode-btn h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .mode-btn p {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        /* Category Grid */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .category-btn {
+            padding: 15px;
+            border: 2px solid #e8e8e8;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .category-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .category-btn.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+
+        .category-btn .emoji {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .category-btn span {
+            display: block;
+            color: #444;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Question Count */
+        .question-count {
+            margin-bottom: 25px;
+        }
+
+        .question-count label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .count-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .count-btn {
+            padding: 10px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .count-btn:hover {
+            border-color: #667eea;
+        }
+
+        .count-btn.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        /* Start Button */
+        .start-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Quiz Screen */
+        .quiz-screen {
+            display: none;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #888;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            color: #333;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 12px;
+        }
+
+        .answers-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .answer-btn {
+            padding: 18px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            text-align: right;
+            font-size: 1.05rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .answer-btn:hover:not(.disabled) {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .answer-btn.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+
+        .answer-btn.correct {
+            border-color: #4CAF50;
+            background: #E8F5E9;
+        }
+
+        .answer-btn.incorrect {
+            border-color: #f44336;
+            background: #FFEBEE;
+        }
+
+        .answer-btn .letter {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #666;
+            flex-shrink: 0;
+        }
+
+        .answer-btn.selected .letter {
+            background: #667eea;
+            color: white;
+        }
+
+        .answer-btn.correct .letter {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .answer-btn.incorrect .letter {
+            background: #f44336;
+            color: white;
+        }
+
+        /* Quiz Actions */
+        .quiz-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .help-btn {
+            background: #FFF3E0;
+            color: #FF9800;
+        }
+
+        .help-btn:hover {
+            background: #FFE0B2;
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .next-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Help Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal p {
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .close-modal {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        /* Results Screen */
+        .results-screen {
+            display: none;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .results-header .trophy {
+            font-size: 80px;
+            margin-bottom: 15px;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+        }
+
+        .score-circle .score {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .score-circle .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 12px;
+        }
+
+        .stat-item .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .stat-item .label {
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .share-section {
+            text-align: center;
+            padding: 20px;
+            background: #f0f4ff;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .share-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .share-btn {
+            padding: 12px 30px;
+            background: #25D366;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .results-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .results-btn {
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+        }
+
+        .review-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .home-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 20px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .header p {
+                font-size: 0.95rem;
+            }
+
+            #userArea {
+                position: static !important;
+                justify-content: center;
+                margin-bottom: 10px;
+            }
+
+            .card {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            .mode-selection {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .mode-btn {
+                padding: 15px;
+            }
+
+            .mode-btn .icon {
+                font-size: 30px;
+            }
+
+            .category-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .category-btn {
+                padding: 12px 8px;
+            }
+
+            .category-btn .emoji {
+                font-size: 24px;
+            }
+
+            .category-btn span {
+                font-size: 0.8rem;
+            }
+
+            .count-options {
+                justify-content: center;
+            }
+
+            .count-btn {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+
+            .start-btn {
+                padding: 15px;
+                font-size: 1.1rem;
+            }
+
+            .question-text {
+                font-size: 1.05rem;
+                padding: 15px;
+                line-height: 1.7;
+            }
+
+            .answer-btn {
+                padding: 14px 15px;
+                font-size: 0.95rem;
+            }
+
+            .answer-btn .letter {
+                width: 28px;
+                height: 28px;
+                font-size: 0.9rem;
+            }
+
+            .quiz-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                padding: 12px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .stat-item {
+                padding: 10px 5px;
+            }
+
+            .stat-item .value {
+                font-size: 1.2rem;
+            }
+
+            .stat-item .label {
+                font-size: 0.75rem;
+            }
+
+            .score-circle {
+                width: 120px;
+                height: 120px;
+            }
+
+            .score-circle .score {
+                font-size: 2rem;
+            }
+
+            .results-actions {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .share-section {
+                padding: 15px;
+            }
+
+            .share-section h4 {
+                font-size: 0.95rem;
+            }
+
+            .home-screen .mascot {
+                font-size: 60px;
+            }
+
+            .home-screen h2 {
+                font-size: 1.3rem;
+            }
+
+            .results-header .trophy {
+                font-size: 60px;
+            }
+
+            .modal {
+                padding: 20px;
+                margin: 10px;
+                max-height: 90vh;
+            }
+
+            .visual-answers {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 400px) {
+            .category-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .answer-btn, .category-btn, .mode-btn, .count-btn {
+                min-height: 48px;
+            }
+
+            .action-btn {
+                min-height: 48px;
+            }
+        }
+
+        /* PWA / Fullscreen support */
+        @media (display-mode: standalone) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+
+        /* Visual Questions */
+        .visual-question {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .shape-box {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+
+        .shape-box.question-mark {
+            background: #f8f9ff;
+            font-size: 2rem;
+            color: #667eea;
+        }
+
+        .visual-answers {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .visual-answer-btn {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .visual-answer-btn:hover {
+            border-color: #667eea;
+        }
+
+        .visual-answer-btn.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div id="userArea" style="position: absolute; top: 15px; left: 15px;"></div>
+            <h1>🌟 תרגול למבחן מחוננים</h1>
+            <p>כיתה ב׳ - למידה בכיף!</p>
+        </header>
+
+        <!-- Home Screen -->
+        <div id="homeScreen" class="card home-screen">
+            <div class="welcome">
+                <div class="mascot">🦉</div>
+                <h2>שלום חכמולי!</h2>
+                <p>בוא נתרגל יחד ונתכונן למבחן</p>
+            </div>
+
+            <h3 style="margin-bottom: 15px; color: #333;">בחר מצב תרגול:</h3>
+            <div class="mode-selection">
+                <div class="mode-btn selected" data-mode="practice" onclick="selectMode('practice')">
+                    <div class="icon">📚</div>
+                    <h3>תרגול</h3>
+                    <p>רואים את התשובה אחרי כל שאלה</p>
+                </div>
+                <div class="mode-btn" data-mode="test" onclick="selectMode('test')">
+                    <div class="icon">📝</div>
+                    <h3>מבחן</h3>
+                    <p>רואים תוצאות רק בסוף</p>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 15px; color: #333;">בחר נושאים:</h3>
+            <div class="category-grid" id="categoryGrid">
+                <!-- Categories will be loaded dynamically -->
+            </div>
+
+            <div class="question-count">
+                <label>כמה שאלות?</label>
+                <div class="count-options">
+                    <button class="count-btn" onclick="selectCount(5)">5</button>
+                    <button class="count-btn selected" onclick="selectCount(10)">10</button>
+                    <button class="count-btn" onclick="selectCount(15)">15</button>
+                    <button class="count-btn" onclick="selectCount(20)">20</button>
+                </div>
+            </div>
+
+            <button class="start-btn" onclick="startQuiz()">🚀 התחל!</button>
+            
+            <div style="text-align: center; margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button onclick="showStats()" style="background: transparent; border: 2px solid #667eea; color: #667eea; padding: 10px 25px; border-radius: 25px; cursor: pointer; font-size: 0.95rem;">
+                    📊 הסטטיסטיקות שלי
+                </button>
+                <button onclick="showLeaderboard()" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border: none; color: #333; padding: 10px 25px; border-radius: 25px; cursor: pointer; font-size: 0.95rem; font-weight: 600;">
+                    🏆 לוח הישגים
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quizScreen" class="card quiz-screen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+
+            <div class="quiz-header">
+                <span class="question-number" id="questionNumber">שאלה 1 מתוך 10</span>
+                <div class="timer">
+                    <span>⏱️</span>
+                    <span id="timerDisplay">00:00</span>
+                </div>
+            </div>
+
+            <div id="questionContent">
+                <!-- Question content will be loaded here -->
+            </div>
+
+            <div class="quiz-actions">
+                <button class="action-btn help-btn" onclick="showHelp()">💡 עזרה</button>
+                <button class="action-btn next-btn" id="nextBtn" onclick="nextQuestion()" disabled>הבא ←</button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="card results-screen">
+            <div class="results-header">
+                <div class="trophy" id="resultEmoji">🏆</div>
+                <h2 id="resultTitle">כל הכבוד!</h2>
+            </div>
+
+            <div class="score-circle">
+                <span class="score" id="scorePercent">85%</span>
+                <span class="label">ציון</span>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="value" id="correctCount">8</div>
+                    <div class="label">תשובות נכונות</div>
+                </div>
+                <div class="stat-item">
+                    <div class="value" id="totalCount">10</div>
+                    <div class="label">סה״כ שאלות</div>
+                </div>
+                <div class="stat-item">
+                    <div class="value" id="totalTime">2:30</div>
+                    <div class="label">זמן כולל</div>
+                </div>
+            </div>
+
+            <div class="share-section">
+                <h4>שתף את ההישג שלך עם ההורים! 👨‍👩‍👧</h4>
+                <button class="share-btn" onclick="shareResults()">
+                    <span>📱</span> שתף בוואטסאפ
+                </button>
+            </div>
+
+            <div class="results-actions">
+                <button class="results-btn review-btn" onclick="reviewAnswers()">📋 סקירת תשובות</button>
+                <button class="results-btn home-btn" onclick="goHome()">🏠 חזרה הביתה</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <h3>💡 הכוונה לפתרון</h3>
+            <p id="helpText">טוען...</p>
+            <button class="close-modal" onclick="closeHelp()">הבנתי!</button>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
