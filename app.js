@@ -1,5 +1,5 @@
 // Gifted Test Practice App - Main Application Logic
-// גרסה 2.0 - עם מאגר חכם, תמונות, Firebase והמשכיות
+// גרסה 2.0 - עם מאגר חכם, תמונות, Firebase  והמשכיות
 
 const firebaseConfig = {
   apiKey: "AIzaSyCG1egzGOVJE6-_pTEEb1TTLERxi9SrgBM",
